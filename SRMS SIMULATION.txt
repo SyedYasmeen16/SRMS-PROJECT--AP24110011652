@@ -1,0 +1,165 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_PARK 5
+#define MAX_WAIT 10
+
+// ---------------- CAR STRUCT ----------------
+typedef struct {
+    int number;
+    char name[50];
+} Car;
+
+// --------------- STACK (Parking Lot) ----------------
+Car parking[MAX_PARK];
+int top = -1;
+
+// --------------- QUEUE (Waiting Area) ----------------
+Car waitQ[MAX_WAIT];
+int front = 0, rear = -1;
+
+// ---------------- UTILITY FUNCTIONS ----------------
+int isParkFull() { return top == MAX_PARK - 1; }
+int isParkEmpty() { return top == -1; }
+
+int isWaitFull() { return rear == MAX_WAIT - 1; }
+int isWaitEmpty() { return front > rear; }
+
+// ---------------- QUEUE FUNCTIONS ----------------
+void enqueue(Car c) {
+    if (isWaitFull()) {
+        printf("Waiting area full! Cannot add car.\n");
+        return;
+    }
+    waitQ[++rear] = c;
+    printf("Car added to WAITING QUEUE.\n");
+}
+
+Car dequeue() {
+    Car temp = {-1, ""};
+    if (isWaitEmpty()) return temp;
+
+    temp = waitQ[front++];
+    return temp;
+}
+
+// ---------------- STACK FUNCTIONS ----------------
+void push(Car c) {
+    if (isParkFull()) {
+        printf("Parking full! Moving car to waiting queue.\n");
+        enqueue(c);
+        return;
+    }
+    parking[++top] = c;
+    printf("Car PARKED successfully!\n");
+}
+
+Car pop() {
+    Car temp = {-1, ""};
+    if (isParkEmpty()) return temp;
+
+    temp = parking[top--];
+    return temp;
+}
+
+// ---------------- DISPLAY FUNCTIONS ----------------
+void displayParking() {
+    if (isParkEmpty()) {
+        printf("\nParking is empty!\n");
+        return;
+    }
+
+    printf("\n--- PARKING LOT (STACK) ---\n");
+    for (int i = top; i >= 0; i--) {
+        printf("%d. %s (Car No: %d)\n", top - i + 1, parking[i].name, parking[i].number);
+    }
+}
+
+void displayWaiting() {
+    if (isWaitEmpty()) {
+        printf("\nWaiting queue empty!\n");
+        return;
+    }
+
+    printf("\n--- WAITING QUEUE (FIFO) ---\n");
+    for (int i = front; i <= rear; i++) {
+        printf("%d. %s (Car No: %d)\n", i - front + 1, waitQ[i].name, waitQ[i].number);
+    }
+}
+
+// ---------------- REMOVE CAR ----------------
+void removeCar() {
+    if (isParkEmpty()) {
+        printf("Parking empty! Nothing to remove.\n");
+        return;
+    }
+
+    Car removed = pop();
+    printf("Removed Car: %s (No: %d)\n", removed.name, removed.number);
+
+    if (!isWaitEmpty()) {
+        Car nextCar = dequeue();
+        printf("Moving waiting car to parking: %s (No: %d)\n", nextCar.name, nextCar.number);
+        push(nextCar);
+    }
+}
+
+// ---------------- SEARCH CAR ----------------
+void searchCar() {
+    int num, found = 0;
+    printf("Enter car number to search: ");
+    scanf("%d", &num);
+
+    // Search in parking
+    for (int i = 0; i <= top; i++) {
+        if (parking[i].number == num) {
+            printf("Car found in PARKING LOT: %s (No: %d)\n", parking[i].name, num);
+            found = 1;
+        }
+    }
+
+    // Search in waiting
+    for (int i = front; i <= rear; i++) {
+        if (waitQ[i].number == num) {
+            printf("Car found in WAITING QUEUE: %s (No: %d)\n", waitQ[i].name, num);
+            found = 1;
+        }
+    }
+
+    if (!found) printf("Car not found!\n");
+}
+
+// ---------------- MAIN MENU ----------------
+int main() {
+    int ch;
+    Car c;
+
+    while (1) {
+        printf("\n===== PARKING LOT SYSTEM =====\n");
+        printf("1. Park Car\n");
+        printf("2. Remove Car\n");
+        printf("3. Display Parking\n");
+        printf("4. Display Waiting\n");
+        printf("5. Search Car\n");
+        printf("6. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &ch);
+
+        if (ch == 1) {
+            printf("Enter Car Number: ");
+            scanf("%d", &c.number);
+
+            printf("Enter Owner Name: ");
+            scanf(" %[^\n]", c.name);
+
+            push(c);
+        }
+        else if (ch == 2) removeCar();
+        else if (ch == 3) displayParking();
+        else if (ch == 4) displayWaiting();
+        else if (ch == 5) searchCar();
+        else break;
+    }
+
+    return 0;
+}
